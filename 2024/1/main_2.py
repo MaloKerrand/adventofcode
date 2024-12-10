@@ -1,9 +1,3 @@
-import bisect
-
-a = [1, 2, 4, 5]
-bisect.insort(a, 3)
-
-
 def main():
     with open("input", "r") as f:
         content = f.read().splitlines()
@@ -26,7 +20,7 @@ def main():
 
 
 if __name__ == "__main__":
-    import timeit
+    # import timeit
 
-    print(timeit.timeit("main()", number=1000, globals=locals()))
-    # main()
+    # print(timeit.timeit("main()", number=1000, globals=locals()))
+    main()

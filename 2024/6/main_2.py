@@ -63,7 +63,6 @@ def is_infinite_map(x: int, y: int, _map: list[list[str]]) -> bool:
             return True
         know_path.add((new_position, guard_direction))
 
-a:tuple[int, int, str] =
 
 def main():
     with open("input", "r") as f:
