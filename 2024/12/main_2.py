@@ -24,42 +24,26 @@ def create_region(x: int, y: int, char: str, garden: list[str]) -> list[tuple[in
 
 
 def size(region: list[tuple[int, int]]) -> int:
-    area = len(region)
-    fences: list[tuple[int, int, int, int, bool]] = []
+    corner_to_origins: dict[tuple[int, int], list[tuple[int, int]]] = {}
     for x, y in region:
-        for direction in [(-1, 0), (0, -1), (1, 0), (0, 1)]:
+        for direction in [(0, 0), (0, 1), (1, 0), (1, 1)]:
             new_x, new_y = x + direction[0], y + direction[1]
-            if (new_x, new_y) in region:
-                continue
-            fences.append((new_x, new_y, new_x + abs(direction[1]), new_y + abs(direction[0]), direction[0] == 0))
-    nb_size = nb_side(fences)
-    return area * nb_size
+            corner_to_origins.setdefault((new_x, new_y), []).append((x, y))
 
+    total = 0
+    for corner, origins in corner_to_origins.items():
+        nb = len(origins)
 
-def nb_side(fences: list[tuple[int, int, int, int, bool]]) -> int:
-    complete_fences: list[tuple[int, int, int, int, bool]] = []
-    for fence in fences:
-        complete_fences = add_fence(fences=complete_fences, new=fence)
-    return len(complete_fences)
-
-
-def add_fence(fences: list[tuple[int, int, int, int, bool]], new: tuple[int, int, int, int, bool]):
-    aggregated_fence: tuple[int, int, int, int, bool] | None = None
-    old_fences: list[tuple[int, int, int, int, bool]] | None = None
-    for index, (x1, y1, x2, y2, face_x) in enumerate(fences):
-        if face_x != new[4]:
+        if nb == 4:
             continue
-        if (x1, y1) == (new[2], new[3]):
-            aggregated_fence = (new[0], new[1], x2, y2, face_x)
-            old_fences = fences[:index] + fences[index + 1 :]
-            break
-        if (x2, y2) == (new[0], new[1]):
-            aggregated_fence = (x1, y1, new[2], new[3], face_x)
-            old_fences = fences[:index] + fences[index + 1 :]
-            break
-    if aggregated_fence is None:
-        return fences + [new]
-    return add_fence(fences=old_fences, new=aggregated_fence)
+        if nb != 2:
+            total += 1
+            continue
+        (x1, y1), (x2, y2) = origins
+        if x1 != x2 and y1 != y2:
+            total += 2
+
+    return len(region) * total
 
 
 def main():
