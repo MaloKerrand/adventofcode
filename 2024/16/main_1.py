@@ -13,47 +13,35 @@ class Position:
     cost: int
     distance: float
 
-    def __lt__(self, other: "Position"):
-        if self.cost == other.cost:
-            return self.distance < other.distance
-        return self.cost < other.cost
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.dx == other.dx and self.dy == other.dy
 
 
 class PriorityList:
-    def __init__(self, elements: list[Position]|None = None):
+    def __init__(self, elements: list[Position] | None = None):
         self.elements = elements or []
 
     def append(self, position: Position):
-        insort(self.elements, position, key=lambda p: -p.cost)
+        insort(self.elements, position, key=lambda p: -(p.cost + p.distance))
 
 
 MAZE: list[list[str]] = []
+KNOWN_POSITIONS: list[Position] = []
 
 
 def main():
     global MAZE
-    with open("input_fake_2", "r") as f:
+    with open("input", "r") as f:
         MAZE = [list(line) for line in f.read().splitlines()]
 
     start_x, start_y, end_x, end_y = get_start_end()
     priority_list = PriorityList(
         elements=[
-            Position(
-                x=start_x,
-                y=start_y,
-                dx=1,
-                dy=0,
-                cost=0,
-                distance=math.dist((start_x, start_y), (end_x, end_y))
-            )
+            Position(x=start_x, y=start_y, dx=1, dy=0, cost=0, distance=math.dist((start_x, start_y), (end_x, end_y)))
         ]
     )
     while priority_list.elements:
         position = priority_list.elements.pop()
-        print(priority_list.elements)
-        print(position.x, position.y)
-        show(position.x, position.y)
-        input()
         for new_dx, new_dy in [(1, 0), (0, -1), (-1, 0), (0, 1)]:
             if new_dx == -position.dx and new_dy == -position.dy:
                 continue
@@ -72,6 +60,10 @@ def main():
                 cost=new_cost,
                 distance=math.dist((new_x, new_y), (end_x, end_y)),
             )
+
+            if new_position in KNOWN_POSITIONS:
+                continue
+            KNOWN_POSITIONS.append(new_position)
 
             if MAZE[new_y][new_x] == "E":
                 print("FOUND IT !", new_position.cost)
