@@ -11,7 +11,7 @@ def operand_to_value(operand: int, register_a: int, register_b: int, register_c:
     return None
 
 
-def compute(program: list[int], register_a: int,  register_b: int, register_c: int) -> list[int]:
+def compute(program: list[int], register_a: int, register_b: int, register_c: int) -> list[int]:
     output: list[int] = []
     instruction = 0
     while instruction < len(program):
@@ -20,14 +20,11 @@ def compute(program: list[int], register_a: int,  register_b: int, register_c: i
         # print(instruction, opcode, literal_operand, register_a, register_b, register_c)
 
         combo_operand_value: int | None = operand_to_value(
-            operand=literal_operand,
-            register_a=register_a,
-            register_b=register_b,
-            register_c=register_c
+            operand=literal_operand, register_a=register_a, register_b=register_b, register_c=register_c
         )
         match opcode:
             case 0:  # adv
-                register_a = register_a // (2 ** combo_operand_value)
+                register_a = register_a // (2**combo_operand_value)
             case 1:  # bxl
                 register_b = register_b ^ literal_operand
             case 2:  # bst
@@ -40,9 +37,9 @@ def compute(program: list[int], register_a: int,  register_b: int, register_c: i
             case 5:  # out
                 output.append((combo_operand_value % 8) & 0b111)
             case 6:  # bdv
-                register_b = register_a // (2 ** combo_operand_value)
+                register_b = register_a // (2**combo_operand_value)
             case 7:  # cdv
-                register_c = register_a // (2 ** combo_operand_value)
+                register_c = register_a // (2**combo_operand_value)
 
         instruction += 2
     return output

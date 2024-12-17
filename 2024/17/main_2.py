@@ -11,7 +11,7 @@ def operand_to_value(operand: int, register_a: int, register_b: int, register_c:
     return None
 
 
-def compute(program: list[int], register_a: int,  register_b: int, register_c: int) -> list[int] | None:
+def compute(program: list[int], register_a: int, register_b: int, register_c: int) -> list[int] | None:
     output: list[int] = []
     instruction = 0
     while instruction < len(program):
@@ -20,14 +20,11 @@ def compute(program: list[int], register_a: int,  register_b: int, register_c: i
         # print(instruction, opcode, literal_operand, register_a, register_b, register_c)
 
         combo_operand_value: int | None = operand_to_value(
-            operand=literal_operand,
-            register_a=register_a,
-            register_b=register_b,
-            register_c=register_c
+            operand=literal_operand, register_a=register_a, register_b=register_b, register_c=register_c
         )
         match opcode:
             case 0:  # adv
-                register_a = register_a // (2 ** combo_operand_value)
+                register_a = register_a // (2**combo_operand_value)
             case 1:  # bxl
                 register_b = register_b ^ literal_operand
             case 2:  # bst
@@ -42,21 +39,15 @@ def compute(program: list[int], register_a: int,  register_b: int, register_c: i
                 # if output != program[:len(output)]:
                 #     return None
             case 6:  # bdv
-                register_b = register_a // (2 ** combo_operand_value)
+                register_b = register_a // (2**combo_operand_value)
             case 7:  # cdv
-                register_c = register_a // (2 ** combo_operand_value)
+                register_c = register_a // (2**combo_operand_value)
 
         instruction += 2
     return output
 
 
-def smaller_a(
-    program: list[int],
-    index: int,
-    a_list: list[int],
-    register_b: int,
-    register_c: int
-) -> list[int] | None:
+def smaller_a(program: list[int], index: int, a_list: list[int], register_b: int, register_c: int) -> list[int] | None:
     register_a = a_list.copy()
     if index == -1:
         return register_a
@@ -64,7 +55,7 @@ def smaller_a(
     possibles: set[int] = set()
     for i in range(0, 8):
         register_a[index] = i
-        a = sum(i * 8 ** index for index, i in enumerate(register_a))
+        a = sum(i * 8**index for index, i in enumerate(register_a))
         output = compute(program=program, register_a=a, register_b=register_b, register_c=register_c)
         if len(output) == len(program) and output[index] == program[index]:
             possibles.add(i)
@@ -72,11 +63,7 @@ def smaller_a(
     for i in sorted(possibles):
         register_a[index] = i
         small_a = smaller_a(
-            program=program,
-            index=index - 1,
-            a_list=register_a,
-            register_b=register_b,
-            register_c=register_c
+            program=program, index=index - 1, a_list=register_a, register_b=register_b, register_c=register_c
         )
         if small_a is not None:
             return small_a
@@ -94,13 +81,9 @@ def main():
     program: list[int] = [int(e) for e in content[4].split(" ")[1].split(",")]
     a_list = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     a_list = smaller_a(
-        program=program,
-        index=len(a_list) - 1,
-        a_list=a_list,
-        register_b=register_b,
-        register_c=register_c
+        program=program, index=len(a_list) - 1, a_list=a_list, register_b=register_b, register_c=register_c
     )
-    a = sum(i * 8 ** index for index, i in enumerate(a_list))
+    a = sum(i * 8**index for index, i in enumerate(a_list))
     print(a)
 
 

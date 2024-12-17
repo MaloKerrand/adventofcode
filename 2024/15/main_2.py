@@ -98,9 +98,8 @@ class Warehouse:
                 raise Exception("No possible")
 
             case Entity.BOX_L, 0, _:
-                return (
-                    self.can_move(x=new_x, y=new_y, dx=dx, dy=dy)
-                    and self.can_move(x=new_x + 1, y=new_y, dx=dx, dy=dy)
+                return self.can_move(x=new_x, y=new_y, dx=dx, dy=dy) and self.can_move(
+                    x=new_x + 1, y=new_y, dx=dx, dy=dy
                 )
 
             case Entity.BOX_R, 1, _:
@@ -110,9 +109,8 @@ class Warehouse:
                 return self.can_move(x=new_x - 1, y=new_y, dx=dx, dy=dy)
 
             case Entity.BOX_R, 0, _:
-                return (
-                    self.can_move(x=new_x, y=new_y, dx=dx, dy=dy)
-                    and self.can_move(x=new_x - 1, y=new_y, dx=dx, dy=dy)
+                return self.can_move(x=new_x, y=new_y, dx=dx, dy=dy) and self.can_move(
+                    x=new_x - 1, y=new_y, dx=dx, dy=dy
                 )
         return True
 
