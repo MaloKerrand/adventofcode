@@ -89,19 +89,29 @@ y42: 0
 y43: 1
 y44: 1
 
+y00 XOR x00 -> z00
+y01 XOR x01 -> hqt
+y00 AND x00 -> r00
+r00 XOR hqt -> z01
+y02 XOR x02 -> bfr
+x01 AND y01 -> qng
+qng OR hkm -> r01
+r01 XOR bfr -> z02
+x03 XOR y03 -> wmn
+y02 AND x02 -> dpq
+bfr AND r01 -> fvk
+fvk OR dpq -> r02
+wmn XOR r02 -> z03
 y13 AND x13 -> pfp
 y08 XOR x08 -> wkm
-y01 XOR x01 -> hqt
 bhs AND vcd -> rwn
 y23 XOR x23 -> srm
 hrf AND swk -> hph
 mnk XOR ttp -> z29
-y02 AND x02 -> dpq
 y30 AND x30 -> bbw
 thd OR hqc -> jhn
 hsj XOR rkn -> z19
 vvv OR vhb -> php
-fvk OR dpq -> rmb
 dcg AND mjn -> nrm
 dsr AND rqq -> hdf
 jpm XOR pvd -> z43
@@ -143,10 +153,8 @@ y25 AND x25 -> cgg
 npp XOR kfs -> z12
 jwt OR mdh -> rqt
 y13 XOR x13 -> cbp
-x01 AND y01 -> qng
 wks AND wgs -> ghj
 x14 AND y14 -> wkg
-hfm XOR hqt -> z01
 mht XOR gwt -> z10
 php XOR qpd -> z41
 mnk AND ttp -> gqs
@@ -157,14 +165,12 @@ bgw OR hdf -> mmq
 dcg XOR mjn -> z14
 y08 AND x08 -> bdg
 y05 XOR x05 -> vmd
-x03 XOR y03 -> wmn
 tgg XOR fsb -> z35
 srm AND rsf -> gtj
 njw OR rpj -> hrf
 fsb AND tgg -> fkq
 y07 XOR x07 -> krv
-bfr AND dmw -> fvk
-hqt AND hfm -> hkm
+hqt AND r00 -> hkm
 x35 AND y35 -> drp
 x34 XOR y34 -> jrw
 rft OR nrt -> wnb
@@ -179,17 +185,14 @@ jcm OR bbw -> hdn
 y30 XOR x30 -> tmc
 ndk OR fvr -> fgm
 jgd AND msm -> rcs
-dmw XOR bfr -> z02
 jsb AND mrw -> kwp
 x44 AND y44 -> wnn
-wmn AND rmb -> jnw
+wmn AND r02 -> jnw
 qks OR jgc -> nbm
 y34 AND x34 -> jrt
 srn OR fqc -> pcs
 vpk AND nbm -> gdb
-wmn XOR rmb -> z03
 mht AND gwt -> vwp
-y02 XOR x02 -> bfr
 pbw OR jfr -> npp
 x17 XOR y17 -> pcp
 x24 AND y24 -> z24
@@ -231,7 +234,6 @@ vqc XOR pcs -> z33
 rgc OR fpq -> tgs
 vmf OR dpm -> wgs
 y28 AND x28 -> tqj
-y00 XOR x00 -> z00
 btq AND krv -> stq
 x32 AND y32 -> fqc
 cdb XOR crc -> z38
@@ -247,7 +249,6 @@ pjh OR sdp -> fth
 x37 XOR y37 -> qdd
 y37 AND x37 -> ghf
 stq OR jss -> z07
-y00 AND x00 -> hfm
 y16 AND x16 -> fcp
 y43 AND x43 -> hqc
 wnb XOR fmv -> z39
@@ -274,7 +275,6 @@ y40 AND x40 -> vvv
 msm XOR jgd -> z09
 vmd XOR wbn -> z05
 y38 AND x38 -> rft
-qng OR hkm -> dmw
 nmq XOR fgt -> z17
 y04 XOR x04 -> qhk
 swk XOR hrf -> z28

@@ -68,6 +68,56 @@ class Equation:
     def __repr__(self):
         return str(self)
 
+    def display(self):
+        lines, *_ = self._display_aux()
+        for line in lines:
+            print(line)
+
+    def _display_aux(self):
+        """Returns list of strings, width, height, and horizontal coordinate of the root."""
+        # No child.
+        if isinstance(self.right, str) and isinstance(self.left, str):
+            line = f"{self.left}-{self.op}-{self.right}"
+            width = len(line)
+            height = 1
+            middle = width // 2
+            return [line], width, height, middle
+
+        # Only left child.
+        if isinstance(self.right, str):
+            lines, n, p, x = self.left._display_aux()
+            s = f"{self.op}-{self.right}"
+            u = len(s)
+            first_line = (x + 1) * " " + (n - x - 1) * "_" + s
+            second_line = x * " " + "/" + (n - x - 1 + u) * " "
+            shifted_lines = [line + u * " " for line in lines]
+            return [first_line, second_line] + shifted_lines, n + u, p + 2, n + u // 2
+
+        # Only right child.
+        if isinstance(self.left, str):
+            lines, n, p, x = self.right._display_aux()
+            s = f"{self.left}-{self.op}"
+            u = len(s)
+            first_line = s + x * "_" + (n - x) * " "
+            second_line = (u + x) * " " + "\\" + (n - x - 1) * " "
+            shifted_lines = [u * " " + line for line in lines]
+            return [first_line, second_line] + shifted_lines, n + u, p + 2, u // 2
+
+        # Two children.
+        left, n, p, x = self.left._display_aux()
+        right, m, q, y = self.right._display_aux()
+        s = "%s" % self.op
+        u = len(s)
+        first_line = (x + 1) * " " + (n - x - 1) * "_" + s + y * "_" + (m - y) * " "
+        second_line = x * " " + "/" + (n - x - 1 + u + y) * " " + "\\" + (m - y - 1) * " "
+        if p < q:
+            left += [n * " "] * (q - p)
+        elif q < p:
+            right += [m * " "] * (p - q)
+        zipped_lines = zip(left, right)
+        lines = [first_line, second_line] + [a + u * " " + b for a, b in zipped_lines]
+        return lines, n + m + u, max(p, q) + 2, n + u // 2
+
 
 EQUATIONS: dict[str, Equation] = {}
 
@@ -82,10 +132,12 @@ def main():
         n1, operation, n2, _, r = equation.split(" ")
         EQUATIONS[r] = Equation(left=n1, right=n2, op=operation)
 
-    for n in range(46):
-        print(n, EQUATIONS[f"z{n:02d}"] == Equation.z_n(n))
-        print(EQUATIONS[f"z{n:02d}"])
-        print(Equation.z_n(n))
+    EQUATIONS["z03"].display()
+
+    # for n in range(46):
+    #     print(n, EQUATIONS[f"z{n:02d}"] == Equation.z_n(n))
+    #     print(EQUATIONS[f"z{n:02d}"])
+    #     print(Equation.z_n(n))
 
 
 if __name__ == "__main__":
