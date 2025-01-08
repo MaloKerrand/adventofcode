@@ -1,24 +1,9 @@
 class Equation:
-    def __init__(self, left: "Equation | str", right: "Equation | str", op: str):
+    def __init__(self, left: "Equation | str", right: "Equation | str", op: str, name: str):
         self.raw_left = left
         self.raw_right = right
         self.op = op
-
-    @staticmethod
-    def z_n(n: int):
-        if n == 0:
-            return Equation(left="x00", right="y00", op="XOR")
-        left = Equation(left=f"x{n:02d}", right=f"y{n:02d}", op="XOR")
-        right = Equation.r_n(n - 1)
-        return Equation(left=left, right=right, op="XOR")
-
-    @staticmethod
-    def r_n(n: int):
-        if n == 0:
-            return Equation(left="x00", right="y00", op="AND")
-        left = Equation()
-        right = Equation()
-        return Equation(left=left, right=right, op="OR")
+        self.name = name
 
     def __eq__(self, other: "Equation"):
         if not isinstance(other, Equation):
@@ -68,16 +53,26 @@ class Equation:
     def __repr__(self):
         return str(self)
 
-    def display(self):
-        lines, *_ = self._display_aux()
+    def display(self, depth: int | None = None):
+        lines, *_ = self._display_aux(depth)
         for line in lines:
             print(line)
 
-    def _display_aux(self):
+    def _display_aux(self, depth: int | None = None):
         """Returns list of strings, width, height, and horizontal coordinate of the root."""
+        # Depth 0
+        if depth == 0:
+            left = self.left if isinstance(self.left, str) else self.left.name
+            right = self.right if isinstance(self.right, str) else self.right.name
+            line = f"{left}-{self.op}-({self.name})-{right}"
+            width = len(line)
+            height = 1
+            middle = width // 2
+            return [line], width, height, middle
+
         # No child.
         if isinstance(self.right, str) and isinstance(self.left, str):
-            line = f"{self.left}-{self.op}-{self.right}"
+            line = f"{self.left}-{self.op}-({self.name})-{self.right}"
             width = len(line)
             height = 1
             middle = width // 2
@@ -85,8 +80,8 @@ class Equation:
 
         # Only left child.
         if isinstance(self.right, str):
-            lines, n, p, x = self.left._display_aux()
-            s = f"{self.op}-{self.right}"
+            lines, n, p, x = self.left._display_aux(depth - 1 if depth is not None else None)
+            s = f"{self.op}-({self.name})-{self.right}"
             u = len(s)
             first_line = (x + 1) * " " + (n - x - 1) * "_" + s
             second_line = x * " " + "/" + (n - x - 1 + u) * " "
@@ -95,8 +90,8 @@ class Equation:
 
         # Only right child.
         if isinstance(self.left, str):
-            lines, n, p, x = self.right._display_aux()
-            s = f"{self.left}-{self.op}"
+            lines, n, p, x = self.right._display_aux(depth - 1 if depth is not None else None)
+            s = f"{self.left}-{self.op}-({self.name})"
             u = len(s)
             first_line = s + x * "_" + (n - x) * " "
             second_line = (u + x) * " " + "\\" + (n - x - 1) * " "
@@ -104,9 +99,9 @@ class Equation:
             return [first_line, second_line] + shifted_lines, n + u, p + 2, u // 2
 
         # Two children.
-        left, n, p, x = self.left._display_aux()
-        right, m, q, y = self.right._display_aux()
-        s = "%s" % self.op
+        left, n, p, x = self.left._display_aux(depth - 1 if depth is not None else None)
+        right, m, q, y = self.right._display_aux(depth - 1 if depth is not None else None)
+        s = f"{self.op}-({self.name})"
         u = len(s)
         first_line = (x + 1) * " " + (n - x - 1) * "_" + s + y * "_" + (m - y) * " "
         second_line = x * " " + "/" + (n - x - 1 + u + y) * " " + "\\" + (m - y - 1) * " "
@@ -130,14 +125,11 @@ def main():
 
     for equation in equations_raw.splitlines():
         n1, operation, n2, _, r = equation.split(" ")
-        EQUATIONS[r] = Equation(left=n1, right=n2, op=operation)
+        EQUATIONS[r] = Equation(left=n1, right=n2, op=operation, name=r)
 
-    EQUATIONS["z03"].display()
-
-    # for n in range(46):
-    #     print(n, EQUATIONS[f"z{n:02d}"] == Equation.z_n(n))
-    #     print(EQUATIONS[f"z{n:02d}"])
-    #     print(Equation.z_n(n))
+    for n in range(25):
+        print(f"---- z{n:02d} -----")
+        EQUATIONS[f"z{n:02d}"].display(depth=2)
 
 
 if __name__ == "__main__":
