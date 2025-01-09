@@ -127,7 +127,7 @@ def main():
         n1, operation, n2, _, r = equation.split(" ")
         EQUATIONS[r] = Equation(left=n1, right=n2, op=operation, name=r)
 
-    for n in range(25):
+    for n in range(4):
         print(f"---- z{n:02d} -----")
         EQUATIONS[f"z{n:02d}"].display(depth=2)
 

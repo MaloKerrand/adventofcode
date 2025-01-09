@@ -1,3 +1,10 @@
+"""
+                      ____________________XOR-(Zn)________
+                     /                                     \
+         ________OR-(ORn)________                      Xn-XOR-(XORn)-Yn
+        /                        \
+ORn1-AND-XORn1               Xn1-AND-Yn1
+"""
 import math
 from collections import defaultdict
 from itertools import product

@@ -192,7 +192,7 @@ mht AND gwt -> vwp
 y02 XOR x02 -> bfr
 pbw OR jfr -> npp
 x17 XOR y17 -> fgt
-x24 AND y24 -> z24
+x24 AND y24 -> fpq
 x39 XOR y39 -> fmv
 y28 XOR x28 -> swk
 y17 AND x17 -> pcp
@@ -205,7 +205,7 @@ y06 XOR x06 -> vpk
 wkg OR nrm -> rqq
 fkq OR drp -> tmt
 hbs AND fcg -> kkw
-nmp XOR mqq -> fpq
+nmp XOR mqq -> z24
 x09 XOR y09 -> jgd
 hst AND qwr -> vhb
 x18 AND y18 -> jgp
@@ -214,14 +214,14 @@ fgt AND nmq -> vtv
 x15 AND y15 -> bgw
 nqk XOR wkm -> z08
 vjv OR gtj -> nmp
-fth AND qcs -> z32
+fth AND qcs -> srn
 nqk AND wkm -> dcd
 vmd AND wbn -> jgc
 pgc OR jrt -> tgg
 jrw XOR sfv -> z34
 hbs XOR fcg -> z18
 jrw AND sfv -> pgc
-fth XOR qcs -> srn
+fth XOR qcs -> z32
 x18 XOR y18 -> hbs
 x26 XOR y26 -> vcd
 fmv AND wnb -> bnq
