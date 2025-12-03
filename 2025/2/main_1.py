@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 def valid(id_int: int) -> bool:
     id_str = str(id_int)
     length = len(id_str)
@@ -11,7 +14,8 @@ def valid(id_int: int) -> bool:
 
 
 def main():
-    with open(file="input", mode="r", encoding="utf-8") as f:
+    current_file = Path(__file__)
+    with open(file=current_file.parent / "input", mode="r", encoding="utf-8") as f:
         lines: list[str] = f.read().split(",")
 
     invalid_sum = 0

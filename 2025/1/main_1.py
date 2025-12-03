@@ -1,8 +1,10 @@
+from pathlib import Path
 from typing import Literal
 
 
 def main():
-    with open(file="input", mode="r", encoding="utf-8") as f:
+    current_file = Path(__file__)
+    with open(file=current_file.parent / "input", mode="r", encoding="utf-8") as f:
         content = f.read().splitlines()
 
     nb_zero = 0

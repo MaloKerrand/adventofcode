@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 def repeat(repeat_size: int, id_str: str) -> bool:
     pattern = id_str[:repeat_size]
 
@@ -19,7 +22,8 @@ def valid(id_int: int) -> bool:
 
 
 def main():
-    with open(file="input", mode="r", encoding="utf-8") as f:
+    current_file = Path(__file__)
+    with open(file=current_file.parent / "input", mode="r", encoding="utf-8") as f:
         lines: list[str] = f.read().split(",")
 
     invalid_sum = 0
