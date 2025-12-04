@@ -10,7 +10,7 @@ def double_max(numbers: list[int]) -> tuple[int, int]:
 def main():
     current_file = Path(__file__)
     with open(file=current_file.parent / "input", mode="r", encoding="utf-8") as f:
-        lines: list[list[int]] = [[int(i) for i in line[:-1]] for line in f.readlines()]
+        lines: list[list[int]] = [[int(i) for i in line.removesuffix("\n")] for line in f.readlines()]
 
     sum_max = 0
     for line in lines:
