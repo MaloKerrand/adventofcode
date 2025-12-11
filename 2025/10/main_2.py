@@ -1,91 +1,87 @@
-from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 import numpy as np
+import pulp
 from numpy._typing import NDArray
 
 
-@dataclass
+@dataclass(frozen=True)
 class Puzzle:
     objective: NDArray[np.int_]
-    buttons: NDArray[np.int_]
+    buttons: NDArray[np.int_]  # shape: (n_lights, n_buttons)
 
-    def nb_presses_to_solve(self) -> int:
-        """Return the minimal number of non‑negative button presses to reach the objective."""
-        target = tuple(int(v) for v in self.objective.tolist())
-        m, n = self.buttons.shape
+    def min_presses(self) -> int:
+        """
+        Solve the non‑negative integer system A x = b minimizing sum(x) via MILP.
+        """
+        b = self.objective
+        A = self.buttons
+        n_lights, n_buttons = A.shape
 
-        # Quick sanity check: if any row is all zeros but objective is non‑zero, no solution.
-        for row_idx in range(m):
-            if np.all(self.buttons[row_idx, :] == 0) and target[row_idx] != 0:
-                raise ValueError("No solution found")
-
-        # Precompute column increments as tuples for faster updates.
-        increments: list[tuple[int, ...]] = [tuple(int(v) for v in self.buttons[:, j].tolist()) for j in range(n)]
-
-        start_state = tuple(0 for _ in range(m))
-        if start_state == target:
+        # Quick exit
+        if np.all(b == 0):
             return 0
 
-        visited: set[tuple[int, ...]] = {start_state}
-        q: deque[tuple[tuple[int, ...], int]] = deque()
-        q.append((start_state, 0))
+        prob = pulp.LpProblem("min_presses", pulp.LpMinimize)
+        x_vars = [pulp.LpVariable(f"x_{j}", lowBound=0, cat="Integer") for j in range(n_buttons)]
+        # Objective: minimize total presses
+        prob += pulp.lpSum(x_vars)
+        # Constraints: Ax = b
+        for i in range(n_lights):
+            prob += pulp.lpSum(A[i, j] * x_vars[j] for j in range(n_buttons)) == int(b[i])
 
-        while q:
-            state, presses = q.popleft()
-            next_presses = presses + 1
-            for inc in increments:
-                # Compute next state; prune if we exceed the target on any coordinate.
-                next_state_list: list[int] = []
-                valid = True
-                for cur, add, t in zip(state, inc, target):
-                    v = cur + add
-                    if v > t:
-                        valid = False
-                        break
-                    next_state_list.append(v)
-                if not valid:
-                    continue
+        status = prob.solve(pulp.PULP_CBC_CMD(msg=False))
+        if pulp.LpStatus[status] != "Optimal":
+            raise ValueError("No solution found")
 
-                next_state = tuple(next_state_list)
-                if next_state == target:
-                    return next_presses
-                if next_state not in visited:
-                    visited.add(next_state)
-                    q.append((next_state, next_presses))
+        solution = [pulp.value(var) for var in x_vars]
+        if any(v is None for v in solution):
+            raise ValueError("No solution found")
+        return int(round(sum(solution)))
 
-        raise ValueError("No solution found")
+
+def parse_input(path: Path) -> List[Puzzle]:
+    puzzles: List[Puzzle] = []
+    content = path.read_text(encoding="utf-8").splitlines()
+    for line in content:
+        if not line.strip():
+            continue
+        _, *btns, objective_str = line.split()
+        objective = np.array([int(v) for v in objective_str[1:-1].split(",")], dtype=np.int_)
+        n_lights = len(objective)
+        n_buttons = len(btns)
+        buttons = np.zeros((n_lights, n_buttons), dtype=np.int_)
+        for j, btn in enumerate(btns):
+            for light in btn[1:-1].split(","):
+                if light:
+                    buttons[int(light), j] = 1
+        puzzles.append(Puzzle(objective=objective, buttons=buttons))
+    return puzzles
 
 
 def main() -> None:
-    current_file: Path = Path(__file__)
-    content: str = (current_file.parent / "input").read_text(encoding="utf-8")
-    puzzles: list[Puzzle] = []
-    for line in content.splitlines():
-        _, *line_buttons, objective = line.split(sep=" ")
-        objective_values = objective.removeprefix("{").removesuffix("}")
-        puzzle_objective = np.array([int(v) for v in objective_values.split(",")], dtype=np.int_)
-        puzzle_buttons: NDArray[np.int_] = np.zeros((len(puzzle_objective), len(line_buttons)), dtype=np.int_)
-        for button_index, button in enumerate(line_buttons):
-            for light in button.removeprefix("(").removesuffix(")").split(sep=","):
-                puzzle_buttons[int(light), button_index] = 1
+    current_file = Path(__file__)
+    puzzles = parse_input(current_file.parent / "input")
 
-        puzzles.append(
-            Puzzle(
-                objective=puzzle_objective,
-                buttons=puzzle_buttons,
-            )
-        )
-
-    nb_presses_total = 0
-    for puzzle in puzzles:
-        nb_presses_total += puzzle.nb_presses_to_solve()
-    print(nb_presses_total)
+    total = 0
+    for idx, puzzle in enumerate(puzzles):
+        if len(puzzles) > 10:
+            print(f"{100 * idx / len(puzzles):.2f}%")
+        total += puzzle.min_presses()
+    print(total)
 
 
 if __name__ == "__main__":
-    # import timeit
+    # Simple timeout wrapper to avoid long hangs
+    import concurrent.futures
+    import sys
 
-    # print(timeit.timeit("main()", number=1000, globals=locals()))
-    main()
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+            fut = ex.submit(main)
+            fut.result(timeout=20)
+    except concurrent.futures.TimeoutError:
+        print("Timed out")
+        sys.exit(1)
