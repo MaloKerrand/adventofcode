@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "advent_of_code"
+version = "1.0.0"
+description = "Advent of Code"
+authors = ["Malo Kerrand"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^2.3.5"
