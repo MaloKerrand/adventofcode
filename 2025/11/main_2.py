@@ -1,20 +1,5 @@
-from collections import defaultdict
-from dataclasses import dataclass
-from enum import Enum
+import functools
 from pathlib import Path
-
-
-class DataType(Enum):
-    NO_FFT_OR_DAC = "no_fft_or_dac"
-    ONLY_FFT = "only_fft"
-    ONLY_DAC = "only_dac"
-    BOTH_FFT_AND_DAC = "both_fft_and_dac"
-
-
-@dataclass(frozen=True)
-class Data:
-    data_type: DataType
-    point: str
 
 
 def main() -> None:
@@ -25,28 +10,20 @@ def main() -> None:
         vertex, neighbors = line.split(sep=":")
         point_to_neighbors[vertex] = neighbors.strip().split(sep=" ")
 
-    point_to_data_type_to_nb_point: dict[str, dict[DataType, int]] = defaultdict(lambda: defaultdict(int))
-    data_to_visit: list[Data] = [Data(data_type=DataType.NO_FFT_OR_DAC, point="svr")]
-    while data_to_visit:
-        data = data_to_visit.pop()
-        for neighbor in point_to_neighbors.get(data.point, []):
-            current_type = data.data_type
-            match neighbor, current_type:
-                case "fft", DataType.ONLY_FFT:
-                    raise ValueError("Data is looping")
-                case "dac", DataType.ONLY_DAC:
-                    raise ValueError("Data is looping")
-                case "fft", DataType.NO_FFT_OR_DAC:
-                    current_type = DataType.ONLY_FFT
-                case "dac", DataType.NO_FFT_OR_DAC:
-                    current_type = DataType.ONLY_DAC
-                case "fft", DataType.ONLY_DAC:
-                    current_type = DataType.BOTH_FFT_AND_DAC
-                case "dac", DataType.ONLY_FFT:
-                    current_type = DataType.BOTH_FFT_AND_DAC
-            point_to_data_type_to_nb_point[neighbor][current_type] += 1
-            data_to_visit.append(Data(data_type=current_type, point=neighbor))
-    print(point_to_data_type_to_nb_point["out"][DataType.BOTH_FFT_AND_DAC])
+    @functools.cache
+    def nb_path(point_from: str, point_to: str) -> int:
+        if point_from == point_to:
+            return 1
+        return sum(nb_path(neighbor, point_to) for neighbor in point_to_neighbors.get(point_from, []))
+
+    svr_to_ftt = nb_path("svr", "fft")
+    svr_to_dac = nb_path("svr", "dac")
+    ftt_to_dac = nb_path("fft", "dac")
+    dac_to_fft = nb_path("dac", "fft")
+    dac_to_out = nb_path("dac", "out")
+    ftt_to_out = nb_path("fft", "out")
+
+    print(svr_to_ftt * ftt_to_dac * dac_to_out + svr_to_dac * dac_to_fft * ftt_to_out)
 
 
 if __name__ == "__main__":
