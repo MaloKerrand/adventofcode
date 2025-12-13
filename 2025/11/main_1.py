@@ -1,23 +1,22 @@
-from collections import defaultdict
+import functools
 from pathlib import Path
 
 
 def main() -> None:
     current_file: Path = Path(__file__)
     content: str = (current_file.parent / "input").read_text(encoding="utf-8")
-    vertices: dict[str, list[str]] = {}
+    point_to_neighbors: dict[str, list[str]] = {}
     for line in content.splitlines():
         vertex, neighbors = line.split(sep=":")
-        vertices[vertex] = neighbors.strip().split(sep=" ")
+        point_to_neighbors[vertex] = neighbors.strip().split(sep=" ")
 
-    vertiex_to_nb_path: dict[str, int] = defaultdict(int)
-    veticies_to_visit: list[str] = ["you"]
-    while veticies_to_visit:
-        vertex = veticies_to_visit.pop()
-        for neighbor in vertices.get(vertex, []):
-            vertiex_to_nb_path[neighbor] += 1
-            veticies_to_visit.append(neighbor)
-    print(vertiex_to_nb_path["out"])
+    @functools.cache
+    def nb_path_to_out(point: str) -> int:
+        if point == "out":
+            return 1
+        return sum(nb_path_to_out(neighbor) for neighbor in point_to_neighbors.get(point, []))
+
+    print(nb_path_to_out("you"))
 
 
 if __name__ == "__main__":
