@@ -1,155 +1,152 @@
+from collections import deque
 from functools import cache
-from itertools import product
+from pathlib import Path
+from typing import Iterable
+
+NUMERIC_KEYPAD: list[list[str | None]] = [
+    ["7", "8", "9"],
+    ["4", "5", "6"],
+    ["1", "2", "3"],
+    [None, "0", "A"],
+]
+NUMERIC_COORDS: dict[str, tuple[int, int]] = {
+    value: (x, y) for y, row in enumerate(NUMERIC_KEYPAD) for x, value in enumerate(row) if value is not None
+}
+
+DIR_KEYPAD: list[list[str | None]] = [
+    [None, "^", "A"],
+    ["<", "v", ">"],
+]
+DIR_COORDS: dict[str, tuple[int, int]] = {
+    value: (x, y) for y, row in enumerate(DIR_KEYPAD) for x, value in enumerate(row) if value is not None
+}
 
 
-def main():
-    with open("input", "r") as f:
-        codes: list[str] = f.read().splitlines()
+def main() -> None:
+    current_file: Path = Path(__file__)
+    content: str = (current_file.parent / "input").read_text(encoding="utf-8")
+    codes: list[str] = content.splitlines()
+
+    # Part 2: 25 directional keypads operated by robots.
+    robot_layers = 25
 
     total = 0
     for code in codes:
-        complexity = cost_code(list(code))
-        total += complexity
+        total += cost_code(code=code, robot_layers=robot_layers)
     print(total)
 
 
-def n_code_to_d_codes(n_code: list[str]) -> list[list[str]]:
-    d_codes: list[list[str]] = []
-    current_char = "A"
-    for char in n_code:
-        sub_codes: list[list[str]] = n_to_d(char_from=current_char, char_to=char)
-        if not d_codes:
-            d_codes = sub_codes
-        else:
-            d_codes = [d_code + sub_code for d_code, sub_code in product(d_codes, sub_codes)]
-        current_char = char
-    return d_codes
-
-
-@cache
-def d_code_to_d_codes(d_code: tuple[str]) -> list[list[str]]:
-    d_codes: list[list[str]] = []
-    current_char = "A"
-    for char in d_code:
-        sub_codes: list[list[str]] = d_to_d(char_from=current_char, char_to=char)
-        if not d_codes:
-            d_codes = sub_codes
-        else:
-            d_codes = [d_code + sub_code for d_code, sub_code in product(d_codes, sub_codes)]
-        current_char = char
-    return d_codes
-
-
-@cache
-def d_to_d(char_from: str, char_to: str) -> list[list[str]]:
-    if char_from == char_to:
-        return [["A"]]
-    code_to_x_y: dict[str, tuple[int, int]] = {
-        "A": (2, 0),
-        "^": (1, 0),
-        "<": (0, 1),
-        "v": (1, 1),
-        ">": (2, 1),
+def neighbors(
+    keypad: list[list[str | None]],
+    coords: dict[str, tuple[int, int]],
+    char: str,
+) -> Iterable[tuple[str, int, int, str]]:
+    """Yield possible moves (target_char, x, y, move_symbol) from current char."""
+    x, y = coords[char]
+    moves: dict[str, tuple[int, int]] = {
+        "^": (0, -1),
+        "v": (0, 1),
+        "<": (-1, 0),
+        ">": (1, 0),
     }
-    keypad = [
-        [None, "^", "A"],
-        ["<", "v", ">"],
-    ]
-    x_from, y_from = code_to_x_y[char_from]
-    x_to, y_to = code_to_x_y[char_to]
-
-    d_codes: list[list[str]] = []
-    if x_from < x_to and keypad[y_from][x_from + 1] is not None:
-        d_codes += [
-            [">"] + l for l in d_to_d(keypad[y_from][x_from + 1], char_to=char_to) if (">" == l[0] or ">" not in l[1:])
-        ]
-
-    if y_from > y_to and keypad[y_from - 1][x_from] is not None:
-        d_codes += [
-            ["^"] + l for l in d_to_d(keypad[y_from - 1][x_from], char_to=char_to) if ("^" == l[0] or "^" not in l[1:])
-        ]
-
-    if y_from < y_to and keypad[y_from + 1][x_from] is not None:
-        d_codes += [
-            ["v"] + l for l in d_to_d(keypad[y_from + 1][x_from], char_to=char_to) if ("v" == l[0] or "v" not in l[1:])
-        ]
-
-    if x_from > x_to and keypad[y_from][x_from - 1] is not None:
-        d_codes += [
-            ["<"] + l for l in d_to_d(keypad[y_from][x_from - 1], char_to=char_to) if ("<" == l[0] or "<" not in l[1:])
-        ]
-
-    return d_codes
+    for move, (dx, dy) in moves.items():
+        nx, ny = x + dx, y + dy
+        if 0 <= ny < len(keypad) and 0 <= nx < len(keypad[ny]):
+            target: str | None = keypad[ny][nx]
+            if target is not None:
+                yield target, nx, ny, move
 
 
-def n_to_d(char_from: str, char_to: str) -> list[list[str]]:
+def all_shortest_paths(
+    keypad: list[list[str | None]],
+    coords: dict[str, tuple[int, int]],
+    char_from: str,
+    char_to: str,
+) -> list[str]:
+    """Return all shortest sequences of button presses (including final 'A')."""
     if char_from == char_to:
-        return [["A"]]
-    code_to_x_y: dict[str, tuple[int, int]] = {
-        "A": (2, 3),
-        "0": (1, 3),
-        "1": (0, 2),
-        "2": (1, 2),
-        "3": (2, 2),
-        "4": (0, 1),
-        "5": (1, 1),
-        "6": (2, 1),
-        "7": (0, 0),
-        "8": (1, 0),
-        "9": (2, 0),
-    }
-    keypad = [
-        ["7", "8", "9"],
-        ["4", "5", "6"],
-        ["1", "2", "3"],
-        [None, "0", "A"],
-    ]
-    x_from, y_from = code_to_x_y[char_from]
-    x_to, y_to = code_to_x_y[char_to]
+        return ["A"]
 
-    d_codes: list[list[str]] = []
-    if x_from < x_to and keypad[y_from][x_from + 1] is not None:
-        d_codes += [
-            [">"] + l for l in n_to_d(keypad[y_from][x_from + 1], char_to=char_to) if (">" == l[0] or ">" not in l[1:])
-        ]
+    queue: deque[tuple[str, str]] = deque()
+    start_x, start_y = coords[char_from]
+    queue.append((char_from, ""))
 
-    if y_from > y_to and keypad[y_from - 1][x_from] is not None:
-        d_codes += [
-            ["^"] + l for l in n_to_d(keypad[y_from - 1][x_from], char_to=char_to) if ("^" == l[0] or "^" not in l[1:])
-        ]
+    best_dist: int | None = None
+    results: list[str] = []
+    visited: dict[tuple[int, int], int] = {(start_x, start_y): 0}
 
-    if y_from < y_to and keypad[y_from + 1][x_from] is not None:
-        d_codes += [
-            ["v"] + l for l in n_to_d(keypad[y_from + 1][x_from], char_to=char_to) if ("v" == l[0] or "v" not in l[1:])
-        ]
-
-    if x_from > x_to and keypad[y_from][x_from - 1] is not None:
-        d_codes += [
-            ["<"] + l for l in n_to_d(keypad[y_from][x_from - 1], char_to=char_to) if ("<" == l[0] or "<" not in l[1:])
-        ]
-
-    return d_codes
-
-
-def cost_code(code: list[str]) -> int:
-    code_value = int("".join(code).lstrip("0").rstrip("A"))
-
-    d_codes = n_code_to_d_codes(n_code=code)
-    for i in range(3):
-        new_d_codes: list[list[str]] = []
-        min_d_code_size = min(len(d_code) for d_code in d_codes)
-        for d_code in d_codes:
-            if len(d_code) > min_d_code_size:
+    while queue:
+        char, path = queue.popleft()
+        if best_dist is not None and len(path) > best_dist:
+            break
+        if char == char_to:
+            best_dist: int = len(path) if best_dist is None else best_dist
+            results.append(path + "A")
+            continue
+        for target, nx, ny, move in neighbors(keypad=keypad, coords=coords, char=char):
+            next_len: int = len(path) + 1
+            # Only keep exploring equally short routes.
+            if best_dist is not None and next_len > best_dist:
                 continue
-            new_d_codes += d_code_to_d_codes(d_code=tuple(d_code))
-        d_codes = new_d_codes
+            if visited.get((nx, ny), next_len) < next_len:
+                continue
+            visited[(nx, ny)] = next_len
+            queue.append((target, path + move))
 
-    print(code_value)
-    min_d_code_size = min(len(d_code) for d_code in d_codes)
-    print(min_d_code_size)
-    return code_value * min_d_code_size
+    return results
 
 
-# 19 -> 1292666625354
+# Pre-compute all shortest paths for both keypads.
+NUMERIC_PATHS: dict[tuple[str, str], list[str]] = {
+    (a, b): all_shortest_paths(keypad=NUMERIC_KEYPAD, coords=NUMERIC_COORDS, char_from=a, char_to=b)
+    for a in NUMERIC_COORDS
+    for b in NUMERIC_COORDS
+}
+DIR_PATHS: dict[tuple[str, str], list[str]] = {
+    (a, b): all_shortest_paths(keypad=DIR_KEYPAD, coords=DIR_COORDS, char_from=a, char_to=b)
+    for a in DIR_COORDS
+    for b in DIR_COORDS
+}
+
+
+@cache
+def sequence_cost(sequence: str, depth: int) -> int:
+    """Cost to type a whole sequence on a directional keypad with `depth` robots above."""
+    current = "A"
+    total = 0
+    for char in sequence:
+        total += move_cost("dir", depth, current, char)
+        current = char
+    return total
+
+
+@cache
+def move_cost(keypad_type: str, depth: int, char_from: str, char_to: str) -> int:
+    """Minimal button presses on our keypad to press `char_to` from `char_from` at given depth."""
+    if keypad_type == "num":
+        paths = NUMERIC_PATHS[(char_from, char_to)]
+        next_depth = depth - 1
+    else:
+        paths = DIR_PATHS[(char_from, char_to)]
+        next_depth = depth - 1
+
+    if depth == 0:
+        return min(len(path) for path in paths)
+
+    return min(sequence_cost(path, next_depth) for path in paths)
+
+
+def cost_code(code: str, robot_layers: int) -> int:
+    # Numeric part ignores trailing A and leading zeroes.
+    code_value = int(code[:-1])
+
+    total_presses = 0
+    current_char = "A"
+    for char in code:
+        total_presses += move_cost("num", robot_layers, current_char, char)
+        current_char = char
+    return code_value * total_presses
+
+
 if __name__ == "__main__":
     main()
